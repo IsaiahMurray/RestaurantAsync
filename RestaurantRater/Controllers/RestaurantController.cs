@@ -1,6 +1,7 @@
 ﻿using RestaurantRater.Models;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -14,6 +15,7 @@ namespace RestaurantRater.Controllers
         private readonly RestaurantDbContext _context = new RestaurantDbContext();
 
         //POST
+        [HttpPost]
         public async Task<IHttpActionResult> PostRestaurant(Restaurant restaurant)
         {
             if (ModelState.IsValid && restaurant != null)
@@ -25,5 +27,54 @@ namespace RestaurantRater.Controllers
 
             return BadRequest(ModelState);
         }
+
+        // GET ALL
+        [HttpGet]
+        public async Task<IHttpActionResult> GetAll()
+        {
+            List<Restaurant> allRestaurants = await _context.Restaurants.ToListAsync();
+            return Ok(allRestaurants);
+        }
+
+        // GET BY ID
+        [HttpGet]
+        public async Task<IHttpActionResult> GetById(int id)
+        {
+            Restaurant restaurant = await _context.Restaurants.FindAsync(id);
+
+            if (restaurant is null)
+            {
+                return NotFound();
+            }
+
+            return Ok(restaurant);
+        }
+
+        // PUT (Update)
+        [HttpPut]
+        public async Task<IHttpActionResult> UpdateReastaurant([FromUri]int id, [FromBody]Restaurant model)
+        {
+            if(ModelState.IsValid && model != null)
+            {
+                //This is our entity
+                Restaurant restaurant = await _context.Restaurants.FindAsync(id);
+
+                if (restaurant != null)
+                {
+                    restaurant.Name = model.Name;
+                    restaurant.Rating = model.Rating;
+                    restaurant.Style = model.Style;
+                    restaurant.DollarSigns = model.DollarSigns;
+
+                    await _context.SaveChangesAsync();
+
+                    return Ok();
+                }
+                return NotFound();
+            }
+            return BadRequest(ModelState);
+        }
+
+        // DELETE BY ID
     }
 }
